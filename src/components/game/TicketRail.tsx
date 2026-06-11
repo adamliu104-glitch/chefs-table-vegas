@@ -3,11 +3,11 @@ import { OrderTicket } from './OrderTicket';
 
 interface Props {
   orders: Order[];
-  plateRecipeIds: string[];
+  servableRecipeIds: Set<string>;
   onServe: (id: string) => void;
 }
 
-export function TicketRail({ orders, plateRecipeIds, onServe }: Props) {
+export function TicketRail({ orders, servableRecipeIds, onServe }: Props) {
   return (
     <div className="relative bg-zinc-950/90 border-b border-zinc-800">
       {/* Rail rod */}
@@ -22,7 +22,7 @@ export function TicketRail({ orders, plateRecipeIds, onServe }: Props) {
             <OrderTicket
               key={order.id}
               order={order}
-              canServe={plateRecipeIds.includes(order.recipeId)}
+              canServe={servableRecipeIds.has(order.recipeId)}
               onServe={onServe}
             />
           ))

@@ -46,4 +46,4 @@ export interface Order {
   status: 'active' | 'completed' | 'failed';
 }
 
-export type GamePhase = 'menu' | 'playing' | 'gameOver';
+export type GamePhase = 'menu' | 'playing' | 'paused' | 'gameOver';

@@ -13,12 +13,15 @@ interface GameStore {
   highScore: number;
   gameTimeLeft: number;
   level: number;
+  levelUpNotif: boolean;
   orders: Order[];
   workItems: WorkItem[];
   flash: Flash | null;
 
   startGame: () => void;
   endGame: () => void;
+  pauseGame: () => void;
+  resumeGame: () => void;
   goToMenu: () => void;
   tick: (deltaMs: number) => void;
   spawnOrder: () => void;
@@ -37,12 +40,34 @@ function scheduleOrder(spawnFn: () => void, delayMs: number) {
   orderSpawnTimer = setTimeout(spawnFn, delayMs);
 }
 
+// Level thresholds based on elapsed game time (180 - timeLeft)
+function calcLevel(timeLeft: number): number {
+  const elapsed = 180 - timeLeft;
+  if (elapsed < 60) return 1;
+  if (elapsed < 120) return 2;
+  return 3;
+}
+
+// Orders arrive faster and timers are shorter at higher levels
+function orderSpawnDelay(level: number): number {
+  if (level === 1) return 18000 + Math.random() * 12000;
+  if (level === 2) return 12000 + Math.random() * 8000;
+  return 8000 + Math.random() * 5000;
+}
+
+function timeLimitMultiplier(level: number): number {
+  if (level === 1) return 1.0;
+  if (level === 2) return 0.85;
+  return 0.72;
+}
+
 export const useGameStore = create<GameStore>((set, get) => ({
   phase: 'menu',
   score: 0,
   highScore: 0,
   gameTimeLeft: 180,
   level: 1,
+  levelUpNotif: false,
   orders: [],
   workItems: [],
   flash: null,
@@ -50,7 +75,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   startGame: () => {
     uid = 0;
     if (orderSpawnTimer) clearTimeout(orderSpawnTimer);
-    set({ phase: 'playing', score: 0, gameTimeLeft: 180, level: 1, orders: [], workItems: [], flash: null });
+    set({ phase: 'playing', score: 0, gameTimeLeft: 180, level: 1, levelUpNotif: false, orders: [], workItems: [], flash: null });
     scheduleOrder(() => get().spawnOrder(), 800);
   },
 
@@ -60,7 +85,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ phase: 'gameOver', highScore: Math.max(score, highScore) });
   },
 
-  goToMenu: () => set({ phase: 'menu' }),
+  pauseGame: () => {
+    if (get().phase !== 'playing') return;
+    if (orderSpawnTimer) clearTimeout(orderSpawnTimer);
+    set({ phase: 'paused' });
+  },
+
+  resumeGame: () => {
+    if (get().phase !== 'paused') return;
+    set({ phase: 'playing' });
+    scheduleOrder(() => get().spawnOrder(), orderSpawnDelay(get().level));
+  },
+
+  goToMenu: () => {
+    if (orderSpawnTimer) clearTimeout(orderSpawnTimer);
+    set({ phase: 'menu' });
+  },
 
   tick: (deltaMs) => {
     const state = get();
@@ -68,6 +108,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const newGameTime = state.gameTimeLeft - deltaMs / 1000;
     if (newGameTime <= 0) { get().endGame(); return; }
+
+    // Level up check
+    const newLevel = calcLevel(newGameTime);
+    const didLevelUp = newLevel > state.level;
 
     // Tick orders
     let scoreDelta = 0;
@@ -86,9 +130,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     // Tick work items on stations
     const updatedItems = state.workItems.map(item => {
       if (!item.isProcessing || item.atStation === null) return item;
-
       const recipe = RECIPE_MAP[item.recipeId];
-      // KEY FIX: use item.stepIndex directly — never search by station name
       const step = recipe?.steps[item.stepIndex];
       if (!step?.cookTime) return item;
 
@@ -99,22 +141,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
         return { ...item, elapsed: newElapsed, progress: 100, isProcessing: false, isBurnt: true };
       }
       if (newElapsed >= step.cookTime) {
-        const nextStepIndex = item.stepIndex + 1;
         return {
           ...item,
           elapsed: newElapsed,
           progress: 100,
           isProcessing: false,
-          stepIndex: nextStepIndex,
+          stepIndex: item.stepIndex + 1,
           name: step.outputName,
           emoji: step.outputEmoji,
-          atStation: item.atStation, // stays on station — player must drag off
+          atStation: item.atStation,
         };
       }
       return { ...item, elapsed: newElapsed, progress };
     });
 
-    // Remove failed orders after a short display
     const visibleOrders = updatedOrders.filter(o => o.status !== 'failed');
 
     set({
@@ -122,7 +162,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
       score: Math.max(0, state.score + scoreDelta),
       orders: visibleOrders,
       workItems: updatedItems,
+      level: newLevel,
+      levelUpNotif: didLevelUp,
     });
+
+    // Clear level-up notification after 2.5s
+    if (didLevelUp) setTimeout(() => set({ levelUpNotif: false }), 2500);
   },
 
   spawnOrder: () => {
@@ -135,6 +180,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     }
 
     const recipe = RECIPES[Math.floor(Math.random() * RECIPES.length)];
+    const mult = timeLimitMultiplier(state.level);
     const order: Order = {
       id: nextId('ord'),
       recipeId: recipe.id,
@@ -142,14 +188,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       emoji: recipe.emoji,
       points: recipe.points,
       steps: recipe.steps,
-      timeLimit: recipe.timeLimit,
-      timeRemaining: recipe.timeLimit,
+      timeLimit: Math.round(recipe.timeLimit * mult),
+      timeRemaining: Math.round(recipe.timeLimit * mult),
       status: 'active',
     };
     set(s => ({ orders: [...s.orders, order] }));
 
-    const delay = 18000 + Math.random() * 12000;
-    scheduleOrder(() => get().spawnOrder(), delay);
+    scheduleOrder(() => get().spawnOrder(), orderSpawnDelay(state.level));
   },
 
   addIngredient: (recipeId) => {
@@ -256,10 +301,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const order = state.orders.find(o => o.id === orderId);
     if (!order || order.status !== 'active') return;
 
-    const plateItem = state.workItems.find(
-      w => w.onPlate && w.recipeId === order.recipeId && w.stepIndex >= RECIPE_MAP[order.recipeId].steps.length
+    const recipe = RECIPE_MAP[order.recipeId];
+    if (!recipe) return;
+
+    // Find any fully-cooked matching item — wherever it is (inventory, station, or plate)
+    const doneItem = state.workItems.find(
+      w => w.recipeId === order.recipeId &&
+           w.stepIndex >= recipe.steps.length &&
+           !w.isProcessing &&
+           !w.isBurnt
     );
-    if (!plateItem) return;
+    if (!doneItem) return;
 
     const timeBonus = Math.round((order.timeRemaining / order.timeLimit) * 80);
     const earned = order.points + timeBonus;
@@ -267,7 +319,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set(s => ({
       score: s.score + earned,
       orders: s.orders.map(o => o.id === orderId ? { ...o, status: 'completed' } : o),
-      workItems: s.workItems.filter(w => w.id !== plateItem.id),
+      workItems: s.workItems.filter(w => w.id !== doneItem.id),
     }));
 
     setTimeout(() => {
