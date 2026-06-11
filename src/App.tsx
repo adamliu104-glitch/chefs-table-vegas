@@ -7,9 +7,9 @@ export default function App() {
   const phase = useGameStore(s => s.phase);
   return (
     <>
-      {phase === 'menu'     && <MenuScreen />}
-      {phase === 'playing'  && <GameScreen />}
-      {phase === 'gameOver' && <GameOverScreen />}
+      {phase === 'menu'                          && <MenuScreen />}
+      {(phase === 'playing' || phase === 'paused') && <GameScreen />}
+      {phase === 'gameOver'                      && <GameOverScreen />}
     </>
   );
 }
