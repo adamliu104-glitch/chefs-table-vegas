@@ -6,14 +6,15 @@ import { useGameStore } from '../../store/gameStore';
 import type { StationId, WorkItem } from '../../types/game';
 import { StationZone } from './StationZone';
 import { WorkItemCard } from './WorkItemCard';
+import { FoodIcon } from './FoodArt';
 
-const STATIONS: { id: StationId; label: string; icon: string; color: string; glow: string }[] = [
-  { id: 'prep',   label: 'PREP',   icon: '🔪', color: 'border-amber-400/60',  glow: 'rgba(251,191,36,0.3)' },
-  { id: 'grill',  label: 'GRILL',  icon: '🔥', color: 'border-red-500/60',    glow: 'rgba(239,68,68,0.3)' },
-  { id: 'stove',  label: 'STOVE',  icon: '🍳', color: 'border-blue-400/60',   glow: 'rgba(96,165,250,0.3)' },
-  { id: 'oven',   label: 'OVEN',   icon: '♨️', color: 'border-rose-600/60',   glow: 'rgba(225,29,72,0.3)' },
-  { id: 'mixing', label: 'MIX',    icon: '🥣', color: 'border-purple-400/60', glow: 'rgba(167,139,250,0.3)' },
-  { id: 'sushi',  label: 'SUSHI',  icon: '🍱', color: 'border-teal-400/60',   glow: 'rgba(45,212,191,0.3)' },
+const STATIONS: { id: StationId; label: string; color: string; glow: string }[] = [
+  { id: 'prep',   label: 'PREP',   color: '#ffc52f', glow: '#fff3cf' },
+  { id: 'grill',  label: 'GRILL',  color: '#ff5b4d', glow: '#ffe0dc' },
+  { id: 'stove',  label: 'STOVE',  color: '#45bdf0', glow: '#dcf2fc' },
+  { id: 'oven',   label: 'OVEN',   color: '#ff8c42', glow: '#ffe8d6' },
+  { id: 'mixing', label: 'MIX',    color: '#c178ff', glow: '#f1e0ff' },
+  { id: 'sushi',  label: 'SUSHI',  color: '#58c95f', glow: '#dff5e0' },
 ];
 
 function PlateZone({ items }: { items: WorkItem[] }) {
@@ -21,14 +22,19 @@ function PlateZone({ items }: { items: WorkItem[] }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div ref={setNodeRef}
-        className={`w-28 min-h-[72px] rounded-2xl border-2 flex flex-wrap gap-1 items-center justify-center p-2 transition-all duration-200
-          ${isOver ? 'border-yellow-300 bg-yellow-950/50 shadow-[0_0_16px_rgba(250,204,21,0.35)]' : 'border-yellow-500/40 bg-yellow-950/20'}`}>
+        className="w-28 min-h-[72px] rounded-2xl flex flex-wrap gap-1 items-center justify-center p-2 transition-all duration-200"
+        style={{
+          background: isOver ? '#fff3cf' : '#fff',
+          border: '3px dashed var(--ink)',
+          boxShadow: isOver ? '0 5px 0 var(--sunny-deep)' : '0 5px 0 rgba(74,41,18,0.3)',
+          transform: isOver ? 'scale(1.06)' : 'scale(1)',
+        }}>
         {items.length === 0
-          ? <span className="text-3xl opacity-30">🍽️</span>
+          ? <div className="opacity-50"><FoodIcon emoji="🍽️" size={44} /></div>
           : items.map(w => <WorkItemCard key={w.id} item={w} compact />)
         }
       </div>
-      <span className="font-display text-sm tracking-wider text-zinc-300">PLATE</span>
+      <span className="font-display text-sm text-white" style={{ textShadow: '0 2px 0 var(--ink)' }}>PLATE</span>
     </div>
   );
 }
@@ -38,17 +44,22 @@ function TrashZone() {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <div ref={setNodeRef}
-        className={`w-16 h-16 rounded-2xl border-2 flex items-center justify-center transition-all duration-200
-          ${isOver ? 'border-red-400 bg-red-950/60 shadow-[0_0_14px_rgba(239,68,68,0.45)]' : 'border-zinc-700/50 bg-zinc-900/40'}`}>
-        <span className="text-2xl">🗑️</span>
+        className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-200 ${isOver ? 'animate-wobble' : ''}`}
+        style={{
+          background: isOver ? 'var(--tomato)' : '#8d9aa5',
+          border: '3px solid var(--ink)',
+          boxShadow: '0 5px 0 rgba(74,41,18,0.3)',
+          transform: isOver ? 'scale(1.1)' : 'scale(1)',
+        }}>
+        <FoodIcon emoji="🗑️" size={36} />
       </div>
-      <span className="font-display text-sm tracking-wider text-zinc-500">TRASH</span>
+      <span className="font-display text-sm text-white" style={{ textShadow: '0 2px 0 var(--ink)' }}>TRASH</span>
     </div>
   );
 }
 
 export function Kitchen() {
-  const { workItems, flash, addIngredient, dropToStation, dropToPlate, dropToTrash } = useGameStore();
+  const { workItems, flash, money, addIngredient, dropToStation, dropToPlate, dropToTrash } = useGameStore();
   const [dragging, setDragging] = useState<WorkItem | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -80,34 +91,23 @@ export function Kitchen() {
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="flex flex-col flex-1 overflow-hidden">
 
-        {/* Kitchen side-view */}
+        {/* Kitchen side-view: checkered tile wall */}
         <div className="flex-1 flex flex-col relative overflow-hidden"
-          style={{ background: 'linear-gradient(180deg, #080812 0%, #0e0a1c 35%, #110c10 70%, #0a0a0a 100%)' }}>
-
-          {/* Neon ceiling strip */}
-          <div className="absolute top-0 left-0 right-0 h-px opacity-70"
-            style={{ background: 'linear-gradient(90deg, transparent, #9d4edd, #ff4d8d, #f5c842, #ff4d8d, #9d4edd, transparent)', boxShadow: '0 0 8px rgba(157,78,237,0.5)' }} />
-
-          {/* Vegas bg decor */}
-          <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
-            {['♠','♦','♣','♥'].map((suit, i) => (
-              <span key={i}
-                className="absolute text-5xl opacity-[0.03]"
-                style={{ top: `${15 + i * 18}%`, left: `${8 + i * 24}%`, transform: `rotate(${i * 15 - 20}deg)` }}>
-                {suit}
-              </span>
-            ))}
-          </div>
+          style={{
+            background: `
+              repeating-conic-gradient(#cfeef9 0% 25%, #b8e6f5 0% 50%) 0 0 / 56px 56px,
+              #cfeef9
+            `,
+          }}>
 
           {/* Stations area */}
-          <div className="flex-1 flex items-center justify-center px-6">
+          <div className="flex-1 flex items-end justify-center px-6 pb-0 pt-10">
             <div className="flex items-end gap-4 flex-wrap justify-center">
               {STATIONS.map(s => (
                 <StationZone
                   key={s.id}
                   stationId={s.id}
                   label={s.label}
-                  icon={s.icon}
                   color={s.color}
                   glowColor={s.glow}
                   occupant={occupants[s.id]}
@@ -117,27 +117,43 @@ export function Kitchen() {
             </div>
           </div>
 
-          {/* Counter edge */}
-          <div className="h-3 bg-gradient-to-b from-zinc-600 to-zinc-700 border-t border-zinc-500/60 shadow-[0_-4px_16px_rgba(0,0,0,0.6)]" />
+          {/* Wooden counter edge */}
+          <div className="h-5 shrink-0"
+            style={{
+              background: 'repeating-linear-gradient(90deg, var(--wood) 0px, var(--wood) 70px, var(--wood-deep) 70px, var(--wood-deep) 74px)',
+              borderTop: '3px solid var(--ink)',
+            }} />
         </div>
 
         {/* Bottom bar: spawn + plate + trash */}
-        <div className="bg-zinc-950 border-t border-zinc-800/80 px-6 py-3 flex items-center gap-6">
+        <div className="px-6 py-3 flex items-center gap-6"
+          style={{ background: 'var(--wood-deep)', borderTop: '3px solid var(--ink)' }}>
           {/* Ingredient spawn buttons */}
-          <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest">
-              Add Ingredient →
+          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+            <span className="font-display text-xs text-white" style={{ textShadow: '0 2px 0 var(--ink)' }}>
+              BUY INGREDIENT ➜
             </span>
             <div className="flex gap-2 flex-wrap">
-              {RECIPES.map(r => (
-                <button key={r.id} onClick={() => addIngredient(r.id)}
-                  title={`Add ${r.startName} for ${r.name}`}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-zinc-700/60 bg-zinc-800/50
-                    hover:border-purple-500/60 hover:bg-purple-900/20 active:scale-95 transition-all group">
-                  <span className="text-base">{r.startEmoji}</span>
-                  <span className="text-[10px] font-semibold text-zinc-400 group-hover:text-purple-300">{r.startName}</span>
-                </button>
-              ))}
+              {RECIPES.map(r => {
+                const affordable = money >= r.cost;
+                return (
+                  <button key={r.id} onClick={() => addIngredient(r.id)}
+                    title={affordable ? `Buy ${r.startName} for $${r.cost}` : `Need $${r.cost} — not enough cash!`}
+                    className={`toon-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl ${affordable ? 'bg-white hover:brightness-105' : 'cursor-not-allowed'}`}
+                    style={{
+                      boxShadow: '0 3px 0 var(--ink)',
+                      background: affordable ? undefined : '#cfc4ba',
+                      opacity: affordable ? 1 : 0.6,
+                    }}>
+                    <FoodIcon emoji={r.startEmoji} size={22} />
+                    <span className="text-[10px] font-extrabold" style={{ color: 'var(--ink)' }}>{r.startName}</span>
+                    <span className="font-display text-[10px] px-1.5 py-0.5 rounded-full text-white"
+                      style={{ background: affordable ? 'var(--leaf)' : 'var(--tomato)', border: '2px solid var(--ink)' }}>
+                      ${r.cost}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -150,8 +166,9 @@ export function Kitchen() {
 
         {/* Inventory tray */}
         {inventoryItems.length > 0 && (
-          <div className="bg-zinc-900/80 border-t border-zinc-800/60 px-6 py-2.5 flex items-center gap-3 overflow-x-auto">
-            <span className="text-[9px] font-semibold text-zinc-500 uppercase tracking-widest shrink-0">Inventory</span>
+          <div className="px-6 py-2.5 flex items-center gap-3 overflow-x-auto"
+            style={{ background: 'var(--cream)', borderTop: '3px solid var(--ink)' }}>
+            <span className="font-display text-xs shrink-0" style={{ color: 'var(--ink)' }}>INVENTORY ➜</span>
             {inventoryItems.map(item => (
               <WorkItemCard key={item.id} item={item} />
             ))}
@@ -159,20 +176,22 @@ export function Kitchen() {
         )}
 
         {/* Recipe guide strip */}
-        <div className="bg-black/80 border-t border-zinc-900 px-6 py-1.5 flex items-center gap-5 overflow-x-auto">
-          <span className="text-[9px] font-semibold text-zinc-600 uppercase tracking-widest shrink-0">Recipes</span>
+        <div className="px-6 py-1.5 flex items-center gap-5 overflow-x-auto"
+          style={{ background: 'var(--ink)', borderTop: '3px solid var(--ink)' }}>
+          <span className="font-display text-[11px] shrink-0" style={{ color: 'var(--sunny)' }}>RECIPES</span>
           {RECIPES.map(r => (
             <div key={r.id} className="flex items-center gap-1.5 shrink-0">
-              <span className="text-sm">{r.emoji}</span>
-              <span className="text-[9px] font-bold text-zinc-400">{r.name}</span>
-              <span className="text-zinc-700 text-[9px]">→</span>
+              <FoodIcon emoji={r.emoji} size={18} />
+              <span className="text-[9px] font-extrabold text-white">{r.name}</span>
+              <span className="text-[9px]" style={{ color: 'var(--wood)' }}>➜</span>
               {r.steps.map((step, i) => (
                 <span key={i}
-                  className="text-[8px] font-semibold text-zinc-500 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded-full">
+                  className="text-[8px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: 'rgba(255,255,255,0.12)', color: '#f5e3cd', border: '1.5px solid rgba(255,255,255,0.25)' }}>
                   {step.station.toUpperCase()} · {step.action}
                 </span>
               ))}
-              <span className="text-[9px] font-black text-yellow-500 ml-0.5">+{r.points}</span>
+              <span className="font-display text-[10px] ml-0.5" style={{ color: 'var(--sunny)' }}>+{r.points}</span>
             </div>
           ))}
         </div>

@@ -11,6 +11,7 @@ interface GameStore {
   phase: GamePhase;
   score: number;
   highScore: number;
+  money: number;
   gameTimeLeft: number;
   level: number;
   levelUpNotif: boolean;
@@ -61,10 +62,13 @@ function timeLimitMultiplier(level: number): number {
   return 0.72;
 }
 
+export const STARTING_MONEY = 60;
+
 export const useGameStore = create<GameStore>((set, get) => ({
   phase: 'menu',
   score: 0,
   highScore: 0,
+  money: STARTING_MONEY,
   gameTimeLeft: 180,
   level: 1,
   levelUpNotif: false,
@@ -75,7 +79,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   startGame: () => {
     uid = 0;
     if (orderSpawnTimer) clearTimeout(orderSpawnTimer);
-    set({ phase: 'playing', score: 0, gameTimeLeft: 180, level: 1, levelUpNotif: false, orders: [], workItems: [], flash: null });
+    set({ phase: 'playing', score: 0, money: STARTING_MONEY, gameTimeLeft: 180, level: 1, levelUpNotif: false, orders: [], workItems: [], flash: null });
     scheduleOrder(() => get().spawnOrder(), 800);
   },
 
@@ -200,6 +204,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
   addIngredient: (recipeId) => {
     const recipe = RECIPE_MAP[recipeId];
     if (!recipe) return;
+
+    // Not enough cash — shake the wallet
+    if (get().money < recipe.cost) {
+      set({ flash: { id: 'money', type: 'error' } });
+      setTimeout(() => get().clearFlash(), 500);
+      return;
+    }
+
     const item: WorkItem = {
       id: nextId('item'),
       recipeId,
@@ -213,7 +225,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       atStation: null,
       onPlate: false,
     };
-    set(s => ({ workItems: [...s.workItems, item] }));
+    set(s => ({ workItems: [...s.workItems, item], money: s.money - recipe.cost }));
   },
 
   dropToStation: (itemId, stationId) => {
@@ -315,9 +327,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
     const timeBonus = Math.round((order.timeRemaining / order.timeLimit) * 80);
     const earned = order.points + timeBonus;
+    // Cash payout: ingredient cost back plus profit scaled to the dish's value
+    const cashEarned = recipe.cost + Math.round(earned / 8);
 
     set(s => ({
       score: s.score + earned,
+      money: s.money + cashEarned,
       orders: s.orders.map(o => o.id === orderId ? { ...o, status: 'completed' } : o),
       workItems: s.workItems.filter(w => w.id !== doneItem.id),
     }));

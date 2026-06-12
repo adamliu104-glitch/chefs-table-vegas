@@ -14,6 +14,7 @@ export interface Recipe {
   name: string;
   emoji: string;
   points: number;
+  cost: number;         // $ to buy the starting ingredient
   timeLimit: number;    // seconds
   startName: string;
   startEmoji: string;
