@@ -1,7 +1,8 @@
 import { useGameStore } from '../../store/gameStore';
 
 export function HUD() {
-  const { score, gameTimeLeft, level, levelUpNotif, phase, pauseGame, resumeGame, endGame } = useGameStore();
+  const { score, money, gameTimeLeft, level, levelUpNotif, phase, flash, pauseGame, resumeGame, endGame } = useGameStore();
+  const moneyError = flash?.id === 'money' && flash.type === 'error';
 
   const mins = Math.floor(gameTimeLeft / 60);
   const secs = Math.floor(gameTimeLeft % 60);
@@ -11,58 +12,63 @@ export function HUD() {
   const LEVEL_LABELS: Record<number, string> = { 1: 'PREP COOK', 2: 'SOUS CHEF', 3: 'HEAD CHEF' };
 
   return (
-    <div className="relative flex items-center justify-between px-5 py-2.5 bg-black/80 border-b border-zinc-800/80 backdrop-blur-sm shrink-0">
+    <div className="relative flex items-center justify-between px-5 py-2 shrink-0"
+      style={{
+        background: 'linear-gradient(180deg, var(--wood) 0%, var(--wood-deep) 100%)',
+        borderBottom: '3px solid var(--ink)',
+      }}>
 
       {/* Level-up notification */}
       {levelUpNotif && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-          <div className="animate-pop-in px-6 py-2 rounded-2xl border font-display text-2xl tracking-widest"
-            style={{ background: 'rgba(157,78,237,0.2)', borderColor: '#9d4edd', color: '#c084fc',
-              boxShadow: '0 0 30px rgba(157,78,237,0.5)' }}>
-            ⬆ LEVEL {level} — {LEVEL_LABELS[level] ?? 'MASTER'}
+        <div className="absolute inset-x-0 top-full mt-2 flex items-center justify-center pointer-events-none z-30">
+          <div className="animate-pop-in toon-panel px-7 py-2.5 font-display text-2xl text-white"
+            style={{ background: 'var(--berry)', textShadow: '0 2px 0 var(--ink)' }}>
+            ⬆ LEVEL {level} — {LEVEL_LABELS[level] ?? 'MASTER'}!
           </div>
         </div>
       )}
 
       {/* Left: title */}
       <div className="flex items-center gap-2">
-        <span className="text-base">🍴</span>
-        <span className="font-display text-lg tracking-widest hidden sm:block"
-          style={{ color: '#f5c842', textShadow: '0 0 10px rgba(245,200,66,0.5)' }}>
+        <span className="text-2xl animate-flicker inline-block">🍴</span>
+        <span className="font-display text-xl hidden sm:block toon-text"
+          style={{ color: '#fff', textShadow: '0 2px 0 var(--ink)' }}>
           CHEF'S TABLE
         </span>
       </div>
 
       {/* Center: score | timer | level */}
-      <div className="flex items-center gap-6">
-        <div className="flex flex-col items-center">
-          <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest">Score</span>
-          <span className="font-display text-2xl leading-none"
-            style={{ color: '#f5c842', textShadow: '0 0 8px rgba(245,200,66,0.5)' }}>
+      <div className="flex items-center gap-3">
+        <div className="toon-panel flex flex-col items-center px-4 py-1 bg-white" style={{ transform: 'rotate(-1.5deg)', borderRadius: 14 }}>
+          <span className="text-[9px] font-extrabold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>Score</span>
+          <span className="font-display text-xl leading-none" style={{ color: 'var(--sunny-deep)' }}>
             {score.toLocaleString()}
           </span>
         </div>
 
-        <div className="flex flex-col items-center">
-          <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest">Time</span>
-          <span className={`font-display text-3xl leading-none tabular-nums ${isLow ? 'animate-urgent' : ''}`}
-            style={{
-              color: isLow ? '#f87171' : '#fff',
-              textShadow: isLow ? '0 0 12px rgba(248,113,113,0.7)' : '0 0 6px rgba(255,255,255,0.2)',
-            }}>
+        <div className={`toon-panel flex flex-col items-center px-4 py-1 ${moneyError ? 'animate-shake' : ''}`}
+          style={{ background: moneyError ? '#ffd9d4' : '#fff', borderRadius: 14 }}>
+          <span className="text-[9px] font-extrabold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>Cash</span>
+          <span className="font-display text-xl leading-none" style={{ color: moneyError ? 'var(--tomato-deep)' : 'var(--leaf-deep)' }}>
+            ${money.toLocaleString()}
+          </span>
+        </div>
+
+        <div className={`toon-panel flex flex-col items-center px-4 py-1 ${isLow ? 'animate-urgent' : ''}`}
+          style={{ background: isLow ? 'var(--tomato)' : '#fff', borderRadius: 14 }}>
+          <span className="text-[9px] font-extrabold uppercase tracking-wider"
+            style={{ color: isLow ? '#fff' : 'var(--ink-soft)' }}>Time</span>
+          <span className="font-display text-2xl leading-none tabular-nums"
+            style={{ color: isLow ? '#fff' : 'var(--ink)' }}>
             {mins}:{secs.toString().padStart(2, '0')}
           </span>
         </div>
 
-        <div className="flex flex-col items-center">
-          <span className="text-[9px] text-zinc-500 font-semibold uppercase tracking-widest">Level</span>
-          <div className="flex flex-col items-center">
-            <span className="font-display text-2xl leading-none"
-              style={{ color: '#c084fc', textShadow: '0 0 8px rgba(192,132,252,0.5)' }}>
-              {level}
-            </span>
-            <span className="text-[8px] font-bold text-purple-400 tracking-wide">{LEVEL_LABELS[level] ?? 'MASTER'}</span>
-          </div>
+        <div className="toon-panel flex flex-col items-center px-4 py-1 bg-white" style={{ transform: 'rotate(1.5deg)', borderRadius: 14 }}>
+          <span className="text-[9px] font-extrabold uppercase tracking-wider" style={{ color: 'var(--ink-soft)' }}>Level {level}</span>
+          <span className="font-display text-sm leading-tight" style={{ color: 'var(--berry-deep)' }}>
+            {LEVEL_LABELS[level] ?? 'MASTER'}
+          </span>
         </div>
       </div>
 
@@ -70,20 +76,20 @@ export function HUD() {
       <div className="flex items-center gap-2">
         <button
           onClick={isPaused ? resumeGame : pauseGame}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-bold text-xs uppercase tracking-wider transition-all active:scale-95"
+          className="toon-btn font-display text-sm px-4 py-1.5 rounded-xl text-white"
           style={{
-            borderColor: isPaused ? '#f5c842' : '#3f3f5a',
-            color: isPaused ? '#f5c842' : '#a0a0c0',
-            background: isPaused ? 'rgba(245,200,66,0.1)' : 'rgba(255,255,255,0.04)',
-            boxShadow: isPaused ? '0 0 12px rgba(245,200,66,0.3)' : 'none',
+            background: isPaused ? 'var(--leaf)' : 'var(--ocean)',
+            boxShadow: '0 4px 0 var(--ink)',
+            textShadow: '0 1px 0 var(--ink)',
           }}>
-          {isPaused ? '▶ Resume' : '⏸ Pause'}
+          {isPaused ? '▶ RESUME' : '⏸ PAUSE'}
         </button>
 
         <button
           onClick={endGame}
-          className="px-3 py-1.5 rounded-xl border border-zinc-700/60 text-zinc-500 font-bold text-xs uppercase tracking-wider hover:border-red-800 hover:text-red-400 transition-all active:scale-95">
-          Quit
+          className="toon-btn font-display text-sm px-4 py-1.5 rounded-xl text-white"
+          style={{ background: 'var(--tomato)', boxShadow: '0 4px 0 var(--ink)', textShadow: '0 1px 0 var(--ink)' }}>
+          QUIT
         </button>
       </div>
     </div>

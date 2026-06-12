@@ -1,4 +1,5 @@
 import type { Order } from '../../types/game';
+import { FoodIcon } from './FoodArt';
 
 interface Props {
   order: Order;
@@ -12,26 +13,33 @@ export function OrderTicket({ order, canServe, onServe }: Props) {
   const critical = pct < 15;
   const done = order.status === 'completed';
 
+  let paperBg = 'var(--paper)';
+  if (done) paperBg = '#d8f5d9';
+  else if (critical) paperBg = '#ffd9d4';
+  else if (urgent) paperBg = '#ffeccc';
+
   return (
     <div
-      className={`
-        relative flex flex-col gap-2 rounded-b-2xl border-2 border-t-0 px-3 pt-3 pb-2.5
-        min-w-[130px] max-w-[148px] flex-shrink-0 transition-all duration-300
-        ${done        ? 'border-emerald-500/70 bg-emerald-950/50 opacity-60' : ''}
-        ${critical && !done ? 'border-red-500 bg-red-950/40 animate-urgent' : ''}
-        ${urgent && !critical && !done ? 'border-orange-400/80 bg-orange-950/30' : ''}
-        ${!urgent && !done ? 'border-purple-500/40 bg-zinc-900/80' : ''}
-      `}
-      style={critical && !done ? { boxShadow: '0 0 18px rgba(239,68,68,0.35)' } : undefined}
+      className={`relative flex flex-col gap-1.5 px-3 pt-3.5 pb-2.5 min-w-[132px] max-w-[150px] flex-shrink-0
+        ${!done ? 'animate-swing' : ''} ${critical && !done ? 'animate-urgent' : ''}`}
+      style={{
+        background: paperBg,
+        border: '3px solid var(--ink)',
+        borderRadius: '6px 6px 16px 16px',
+        boxShadow: '0 5px 0 rgba(74,41,18,0.3)',
+        opacity: done ? 0.65 : 1,
+        transition: 'background 0.3s',
+      }}
     >
-      {/* Clip indicator */}
-      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-5 h-2.5 bg-zinc-500 rounded-t-full" />
+      {/* Clothespin clip */}
+      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-4 h-5 rounded-[4px] z-10"
+        style={{ background: 'var(--wood)', border: '2.5px solid var(--ink)' }} />
 
       <div className="flex items-start gap-2">
-        <span className="text-2xl leading-none">{order.emoji}</span>
+        <FoodIcon emoji={order.emoji} size={30} />
         <div className="flex flex-col min-w-0">
-          <span className="text-[11px] font-black text-white leading-tight">{order.recipeName}</span>
-          <span className={`text-[10px] font-bold ${critical && !done ? 'text-red-400' : 'text-zinc-400'}`}>
+          <span className="text-[11px] font-extrabold leading-tight" style={{ color: 'var(--ink)' }}>{order.recipeName}</span>
+          <span className="font-display text-[11px]" style={{ color: critical && !done ? 'var(--tomato-deep)' : 'var(--leaf-deep)' }}>
             +{order.points} pts
           </span>
         </div>
@@ -41,44 +49,48 @@ export function OrderTicket({ order, canServe, onServe }: Props) {
       <div className="flex flex-wrap gap-1">
         {order.steps.map((step, i) => (
           <span key={i}
-            className="text-[8px] font-semibold bg-zinc-800/80 text-zinc-400 px-1.5 py-0.5 rounded-full border border-zinc-700/60">
+            className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full"
+            style={{ background: '#fff', border: '2px solid var(--ink-soft)', color: 'var(--ink-soft)' }}>
             {step.action}
           </span>
         ))}
-        <span className="text-[8px] font-bold bg-yellow-900/60 text-yellow-400 px-1.5 py-0.5 rounded-full border border-yellow-700/40">
+        <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full text-white"
+          style={{ background: 'var(--sunny-deep)', border: '2px solid var(--ink)' }}>
           🍽 Plate
         </span>
       </div>
 
       {/* Timer bar */}
       {!done && (
-        <div className="w-full h-1.5 rounded-full bg-zinc-700/60 overflow-hidden">
+        <div className="w-full h-2.5 rounded-full overflow-hidden"
+          style={{ background: '#fff', border: '2px solid var(--ink)' }}>
           <div
-            className={`h-full rounded-full transition-all duration-1000
-              ${critical ? 'bg-red-500' : urgent ? 'bg-orange-400' : 'bg-emerald-400'}`}
-            style={{ width: `${pct}%` }}
+            className="h-full rounded-full transition-all duration-1000"
+            style={{
+              width: `${pct}%`,
+              background: critical ? 'var(--tomato)' : urgent ? 'var(--sunny)' : 'var(--leaf)',
+            }}
           />
         </div>
       )}
 
       <div className="flex items-center justify-between">
         {!done ? (
-          <span className={`text-[11px] font-black tabular-nums ${critical ? 'text-red-400' : 'text-zinc-400'}`}>
-            {Math.ceil(order.timeRemaining)}s
+          <span className="font-display text-xs tabular-nums" style={{ color: critical ? 'var(--tomato-deep)' : 'var(--ink-soft)' }}>
+            ⏰ {Math.ceil(order.timeRemaining)}s
           </span>
         ) : (
-          <span className="text-[10px] font-black text-emerald-400">✓ SERVED!</span>
+          <span className="font-display text-xs" style={{ color: 'var(--leaf-deep)' }}>✓ SERVED!</span>
         )}
       </div>
 
       {canServe && !done && (
         <button
           onClick={() => onServe(order.id)}
-          className="mt-0.5 w-full py-1 rounded-lg font-black text-[10px] uppercase tracking-widest
-            text-black bg-yellow-400 hover:bg-yellow-300 active:scale-95 transition-all
-            shadow-[0_0_12px_rgba(250,204,21,0.4)]"
+          className="toon-btn animate-glow-pulse mt-0.5 w-full py-1 rounded-lg font-display text-[11px] text-white"
+          style={{ background: 'var(--leaf)', boxShadow: '0 3px 0 var(--ink)', textShadow: '0 1px 0 var(--ink)' }}
         >
-          🍽 SERVE NOW
+          🍽 SERVE NOW!
         </button>
       )}
     </div>

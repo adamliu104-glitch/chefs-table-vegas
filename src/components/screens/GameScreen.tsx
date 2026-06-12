@@ -35,7 +35,7 @@ export function GameScreen() {
   );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#07070f' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'var(--sky)' }}>
       <HUD />
       <TicketRail orders={orders} servableRecipeIds={servableRecipeIds} onServe={serveOrder} />
 
@@ -51,23 +51,27 @@ function PauseOverlay() {
   const { resumeGame, goToMenu } = useGameStore();
   return (
     <div className="absolute inset-0 z-50 flex flex-col items-center justify-center"
-      style={{ background: 'rgba(7,7,15,0.88)', backdropFilter: 'blur(8px)' }}>
-      <div className="flex flex-col items-center gap-6 animate-pop-in">
-        <div className="text-6xl">⏸</div>
-        <h2 className="font-display text-5xl tracking-widest"
-          style={{ color: '#f5c842', textShadow: '0 0 24px rgba(245,200,66,0.6)' }}>
-          PAUSED
+      style={{ background: 'rgba(74,41,18,0.55)', backdropFilter: 'blur(5px)' }}>
+      <div className="toon-panel flex flex-col items-center gap-5 animate-pop-in px-12 py-10"
+        style={{ background: 'var(--cream)', boxShadow: '0 8px 0 rgba(74,41,18,0.45)' }}>
+        <div className="text-6xl animate-wobble">⏸️</div>
+        <h2 className="font-display toon-text text-5xl"
+          style={{ color: 'var(--sunny)', textShadow: '0 4px 0 var(--ink)' }}>
+          PAUSED!
         </h2>
-        <p className="text-zinc-400 text-sm font-medium">Kitchen is on hold — your timers are frozen</p>
+        <p className="font-bold text-sm" style={{ color: 'var(--ink-soft)' }}>
+          Kitchen is on hold — your timers are frozen ❄️
+        </p>
         <div className="flex gap-4 mt-2">
           <button onClick={resumeGame}
-            className="px-10 py-3.5 rounded-2xl font-black text-base uppercase tracking-widest text-black active:scale-95 transition-transform"
-            style={{ background: 'linear-gradient(135deg,#f5c842,#ff9500)', boxShadow: '0 0 24px rgba(245,200,66,0.4)' }}>
-            ▶ Resume
+            className="toon-btn font-display text-xl px-10 py-3 rounded-2xl text-white"
+            style={{ background: 'var(--leaf)', boxShadow: '0 5px 0 var(--ink)', textShadow: '0 2px 0 var(--ink)' }}>
+            ▶ RESUME
           </button>
           <button onClick={goToMenu}
-            className="px-10 py-3.5 rounded-2xl font-black text-base uppercase tracking-widest text-zinc-300 border border-zinc-700 bg-zinc-900 hover:border-zinc-500 active:scale-95 transition-all">
-            Menu
+            className="toon-btn font-display text-xl px-10 py-3 rounded-2xl text-white"
+            style={{ background: 'var(--ocean)', boxShadow: '0 5px 0 var(--ink)', textShadow: '0 2px 0 var(--ink)' }}>
+            MENU
           </button>
         </div>
       </div>
