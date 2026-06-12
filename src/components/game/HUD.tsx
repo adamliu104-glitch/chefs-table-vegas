@@ -30,7 +30,6 @@ export function HUD() {
 
       {/* Left: title */}
       <div className="flex items-center gap-2">
-        <span className="text-2xl animate-flicker inline-block">🍴</span>
         <span className="font-display text-xl hidden sm:block toon-text"
           style={{ color: '#fff', textShadow: '0 2px 0 var(--ink)' }}>
           CHEF'S TABLE

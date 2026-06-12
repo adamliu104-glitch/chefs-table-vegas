@@ -20,7 +20,7 @@ export function TicketRail({ orders, servableRecipeIds, onServe }: Props) {
       <div className="flex items-start gap-4 px-5 pt-6 pb-3 overflow-x-auto min-h-[118px]">
         {orders.length === 0 ? (
           <p className="m-auto font-display text-base" style={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 2px 0 rgba(74,41,18,0.4)' }}>
-            Waiting for orders… 💤
+            Waiting for orders…
           </p>
         ) : (
           orders.map(order => (

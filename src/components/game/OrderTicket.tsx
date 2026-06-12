@@ -56,7 +56,7 @@ export function OrderTicket({ order, canServe, onServe }: Props) {
         ))}
         <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-full text-white"
           style={{ background: 'var(--sunny-deep)', border: '2px solid var(--ink)' }}>
-          🍽 Plate
+          Plate
         </span>
       </div>
 
@@ -77,7 +77,7 @@ export function OrderTicket({ order, canServe, onServe }: Props) {
       <div className="flex items-center justify-between">
         {!done ? (
           <span className="font-display text-xs tabular-nums" style={{ color: critical ? 'var(--tomato-deep)' : 'var(--ink-soft)' }}>
-            ⏰ {Math.ceil(order.timeRemaining)}s
+            {Math.ceil(order.timeRemaining)}s
           </span>
         ) : (
           <span className="font-display text-xs" style={{ color: 'var(--leaf-deep)' }}>✓ SERVED!</span>
@@ -90,7 +90,7 @@ export function OrderTicket({ order, canServe, onServe }: Props) {
           className="toon-btn animate-glow-pulse mt-0.5 w-full py-1 rounded-lg font-display text-[11px] text-white"
           style={{ background: 'var(--leaf)', boxShadow: '0 3px 0 var(--ink)', textShadow: '0 1px 0 var(--ink)' }}
         >
-          🍽 SERVE NOW!
+          SERVE NOW!
         </button>
       )}
     </div>

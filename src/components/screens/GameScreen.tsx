@@ -54,13 +54,12 @@ function PauseOverlay() {
       style={{ background: 'rgba(74,41,18,0.55)', backdropFilter: 'blur(5px)' }}>
       <div className="toon-panel flex flex-col items-center gap-5 animate-pop-in px-12 py-10"
         style={{ background: 'var(--cream)', boxShadow: '0 8px 0 rgba(74,41,18,0.45)' }}>
-        <div className="text-6xl animate-wobble">⏸️</div>
         <h2 className="font-display toon-text text-5xl"
           style={{ color: 'var(--sunny)', textShadow: '0 4px 0 var(--ink)' }}>
           PAUSED!
         </h2>
         <p className="font-bold text-sm" style={{ color: 'var(--ink-soft)' }}>
-          Kitchen is on hold — your timers are frozen ❄️
+          Kitchen is on hold — your timers are frozen
         </p>
         <div className="flex gap-4 mt-2">
           <button onClick={resumeGame}

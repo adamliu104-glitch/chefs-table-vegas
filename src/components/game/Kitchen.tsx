@@ -100,16 +100,6 @@ export function Kitchen() {
             `,
           }}>
 
-          {/* Hanging pots decor */}
-          <div className="absolute top-0 left-0 right-0 flex justify-around pointer-events-none select-none">
-            {['🍲', '🥘', '🫕', '🍳'].map((pot, i) => (
-              <div key={i} className="flex flex-col items-center animate-swing" style={{ animationDelay: `${i * 0.5}s` }}>
-                <div className="w-0.5 h-6" style={{ background: 'var(--ink)' }} />
-                <span className="text-2xl opacity-70">{pot}</span>
-              </div>
-            ))}
-          </div>
-
           {/* Stations area */}
           <div className="flex-1 flex items-end justify-center px-6 pb-0 pt-10">
             <div className="flex items-end gap-4 flex-wrap justify-center">
@@ -141,7 +131,7 @@ export function Kitchen() {
           {/* Ingredient spawn buttons */}
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
             <span className="font-display text-xs text-white" style={{ textShadow: '0 2px 0 var(--ink)' }}>
-              🛒 BUY INGREDIENT ➜
+              BUY INGREDIENT ➜
             </span>
             <div className="flex gap-2 flex-wrap">
               {RECIPES.map(r => {

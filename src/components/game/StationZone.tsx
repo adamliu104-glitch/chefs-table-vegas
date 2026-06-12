@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { StationId, WorkItem } from '../../types/game';
 import { WorkItemCard } from './WorkItemCard';
 import { StationArt } from './StationArt';
+import { FoodIcon } from './FoodArt';
 
 interface Props {
   stationId: StationId;
@@ -45,16 +46,10 @@ export function StationZone({ stationId, label, color, glowColor, occupant, isFl
           transform: scale,
         }}
       >
-        {/* Steam puffs while cooking */}
-        {occupant?.isProcessing && !isBurning && (
-          <>
-            <span className="absolute -top-5 left-1/3 text-sm animate-steam">💨</span>
-            <span className="absolute -top-5 left-2/3 text-xs animate-steam" style={{ animationDelay: '0.7s' }}>💨</span>
-          </>
-        )}
-
         {isBurning && (
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 text-xl animate-bounce z-10">🔥</div>
+          <div className="absolute -top-5 left-1/2 -translate-x-1/2 animate-bounce z-10">
+            <FoodIcon emoji="🔥" size={26} />
+          </div>
         )}
 
         {occupant ? (

@@ -111,9 +111,6 @@ function HomeScreen({ onPlay }: { onPlay: () => void }) {
         </div>
       )}
 
-      <p className="font-bold text-xs mt-12" style={{ color: 'var(--ink-soft)' }}>
-        A fast-paced cooking game — serve tables before their timers run out! 👨‍🍳
-      </p>
     </div>
   );
 }
